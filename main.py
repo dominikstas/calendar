@@ -41,16 +41,37 @@ def add_task(event, day, hour):
     tasks[day].append(task)
     task_entries[day].insert(tk.END, task)
 
+# Function to delete task
+def delete_task(event, day, hour):
+    if day not in days:
+        messagebox.showerror("Error", f"Invalid day: {day}")
+        return
+    task = f"{hour}: {event}"
+    if task in tasks[day]:
+        tasks[day].remove(task)
+        # Remove from Listbox
+        index = task_entries[day].get(0, tk.END).index(task)
+        task_entries[day].delete(index)
+    else:
+        messagebox.showinfo("Info", f"Task '{task}' not found for {day}.")
+
 # Function to process terminal commands
 def process_command(command):
     parts = command.split()
-    if len(parts) >= 4 and parts[0] == "add":
+    if len(parts) >= 4:
+        action = parts[0]
         event = parts[1]
         day = parts[2].capitalize()
         hour = parts[3]
-        add_task(event, day, hour)
+
+        if action == "add":
+            add_task(event, day, hour)
+        elif action == "delete":
+            delete_task(event, day, hour)
+        else:
+            messagebox.showerror("Error", "Invalid command. Use 'add' or 'delete'.")
     else:
-        messagebox.showerror("Error", "Invalid command format. Use: add <event> <day> <hour>")
+        messagebox.showerror("Error", "Invalid command format. Use: add <event> <day> <hour> or delete <event> <day> <hour>")
 
 # Function to open terminal
 def open_terminal():
@@ -75,7 +96,7 @@ def open_terminal():
     # Add instructions for the user
     instructions = tk.Label(
         terminal,
-        text="Format: add <event> <day> <hour>\nExample: add Meeting Monday 10:00",
+        text="Format: add <event> <day> <hour> or delete <event> <day> <hour>\nExample: delete Meeting Monday 10:00",
         fg="gray"
     )
     instructions.pack(pady=5)
