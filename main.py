@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 # Initialize the main window
 root = tk.Tk()
 root.title("Schedule")
-root.geometry("600x400")
+root.geometry("900x600")  # Updated resolution for better visibility
 
 # Define days of the week and storage for tasks
 days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -12,22 +12,29 @@ tasks = {day: [] for day in days}
 
 # Create a frame to hold the days of the week
 frame = tk.Frame(root)
-frame.pack(pady=20)
+frame.pack(pady=20, padx=10)
 
 # Create dictionary to store task entries
 task_entries = {}
 
 # Loop through each day and create a label with a text entry
 for day in days:
-    day_frame = tk.Frame(frame, borderwidth=1, relief="solid")
-    day_frame.pack(side="left", padx=5, pady=5, expand=True)
+    day_frame = tk.Frame(frame, borderwidth=1, relief="solid", padx=5, pady=5)
+    day_frame.grid(row=0 if days.index(day) < 4 else 1, column=days.index(day) % 4, padx=10, pady=10)
 
     day_label = tk.Label(day_frame, text=day, font=("Arial", 12, "bold"))
     day_label.pack(pady=5)
 
-    # Placeholder entry for tasks (can be expanded later)
-    task_entry = tk.Listbox(day_frame, width=15, height=5)
-    task_entry.pack(padx=5, pady=5)
+    # Listbox with a vertical scrollbar
+    task_frame = tk.Frame(day_frame)
+    task_frame.pack(pady=5)
+
+    task_entry = tk.Listbox(task_frame, width=20, height=8)
+    task_entry.pack(side="left")
+
+    scrollbar = tk.Scrollbar(task_frame, orient="vertical", command=task_entry.yview)
+    scrollbar.pack(side="right", fill="y")
+    task_entry.config(yscrollcommand=scrollbar.set)
 
     # Store the listbox in the task_entries dictionary
     task_entries[day] = task_entry
