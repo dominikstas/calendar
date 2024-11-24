@@ -1,148 +1,364 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import tkinter.font as tkfont
 
-# Initialize the main window
-root = tk.Tk()
-root.title("Schedule")
-root.geometry("900x600")  # Updated resolution for better visibility
+class ModernAppDesign:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Smart Schedule")
+        self.root.geometry("1024x768")
+        self.root.config(bg="#ffffff")
 
-# Define days of the week and storage for tasks
-days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-tasks = {day: [] for day in days}
+        # Custom colors
+        self.colors = {
+            'primary': '#2563eb',      # Blue
+            'secondary': '#6b7280',    # Gray
+            'success': '#059669',      # Green
+            'background': '#ffffff',   # White
+            'surface': '#f3f4f6',     # Light gray
+            'text': '#1f2937',        # Dark gray
+            'border': '#e5e7eb'       # Light border
+        }
 
-# Create a frame to hold the days of the week
-frame = tk.Frame(root)
-frame.pack(pady=20, padx=10)
+        # Task storage
+        self.days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        self.tasks = {day: [] for day in self.days}
+        self.task_entries = {}
 
-# Create dictionary to store task entries
-task_entries = {}
+        # Configure styles
+        self.configure_styles()
+        self.create_ui()
+        self.bind_shortcuts()
 
-# Loop through each day and create a label with a text entry
-for day in days:
-    day_frame = tk.Frame(frame, borderwidth=1, relief="solid", padx=5, pady=5)
-    day_frame.grid(row=0 if days.index(day) < 4 else 1, column=days.index(day) % 4, padx=10, pady=10)
+    def configure_styles(self):
+        # Configure TTK styles
+        style = ttk.Style()
+        style.configure(
+            "Modern.TButton",
+            padding=10,
+            background=self.colors['primary'],
+            foreground="white",
+            font=("Helvetica", 10),
+            borderwidth=0
+        )
+        
+        style.configure(
+            "Card.TFrame",
+            background=self.colors['surface'],
+            relief="flat",
+            borderwidth=1
+        )
 
-    day_label = tk.Label(day_frame, text=day, font=("Arial", 12, "bold"))
-    day_label.pack(pady=5)
+    def create_ui(self):
+        # Main container with padding
+        main_container = ttk.Frame(self.root, style="Card.TFrame", padding="20")
+        main_container.pack(fill="both", expand=True, padx=20, pady=20)
 
-    # Listbox with a vertical scrollbar
-    task_frame = tk.Frame(day_frame)
-    task_frame.pack(pady=5)
+        # Header with gradient effect
+        header_frame = tk.Frame(main_container, bg=self.colors['background'])
+        header_frame.pack(fill="x", pady=(0, 20))
 
-    task_entry = tk.Listbox(task_frame, width=20, height=8)
-    task_entry.pack(side="left")
+        header = tk.Label(
+            header_frame,
+            text="Smart Weekly Planner",
+            font=("Helvetica", 24, "bold"),
+            bg=self.colors['background'],
+            fg=self.colors['primary']
+        )
+        header.pack(pady=10)
 
-    scrollbar = tk.Scrollbar(task_frame, orient="vertical", command=task_entry.yview)
-    scrollbar.pack(side="right", fill="y")
-    task_entry.config(yscrollcommand=scrollbar.set)
+        subtitle = tk.Label(
+            header_frame,
+            text="Organize your week efficiently",
+            font=("Helvetica", 12),
+            bg=self.colors['background'],
+            fg=self.colors['secondary']
+        )
+        subtitle.pack()
 
-    # Store the listbox in the task_entries dictionary
-    task_entries[day] = task_entry
+        # Days grid container
+        days_frame = ttk.Frame(main_container, style="Card.TFrame")
+        days_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-# Function to add task
-def add_task(event, day, hour):
-    if day not in days:
-        messagebox.showerror("Error", f"Invalid day: {day}")
-        return
-    task = f"{hour}: {event}"
-    tasks[day].append(task)
-    task_entries[day].insert(tk.END, task)
+        # Configure grid weights
+        for i in range(7):
+            days_frame.grid_columnconfigure(i, weight=1, uniform="column")
+        days_frame.grid_rowconfigure(0, weight=1)
 
-# Function to delete task
-def delete_task(event, day, hour):
-    if day not in days:
-        messagebox.showerror("Error", f"Invalid day: {day}")
-        return
-    task = f"{hour}: {event}"
-    if task in tasks[day]:
-        tasks[day].remove(task)
-        # Remove from Listbox
-        index = task_entries[day].get(0, tk.END).index(task)
-        task_entries[day].delete(index)
-    else:
-        messagebox.showinfo("Info", f"Task '{task}' not found for {day}.")
+        # Create frames for each day
+        for i, day in enumerate(self.days):
+            day_frame = tk.Frame(
+                days_frame,
+                bg=self.colors['background'],
+                highlightthickness=1,
+                highlightbackground=self.colors['border']
+            )
+            day_frame.grid(row=0, column=i, padx=5, pady=5, sticky="nsew")
 
-# Function to process terminal commands
-def process_command(command):
-    parts = command.split()
-    if len(parts) >= 4:
-        action = parts[0]
-        event = parts[1]
-        day = parts[2].capitalize()
-        hour = parts[3]
+            # Day header with custom styling
+            day_header = tk.Frame(day_frame, bg=self.colors['primary'], height=40)
+            day_header.pack(fill="x")
+            day_header.pack_propagate(False)
 
+            day_label = tk.Label(
+                day_header,
+                text=day,
+                font=("Helvetica", 11, "bold"),
+                bg=self.colors['primary'],
+                fg="white"
+            )
+            day_label.pack(pady=10)
+
+            # Task listbox with custom styling
+            task_frame = tk.Frame(day_frame, bg=self.colors['background'])
+            task_frame.pack(fill="both", expand=True)
+
+            task_listbox = tk.Listbox(
+                task_frame,
+                bg=self.colors['background'],
+                fg=self.colors['text'],
+                font=("Helvetica", 10),
+                selectmode="extended",
+                borderwidth=0,
+                highlightthickness=0,
+                selectbackground=self.colors['primary'],
+                selectforeground="white"
+            )
+            task_listbox.pack(side="left", fill="both", expand=True)
+
+            scrollbar = ttk.Scrollbar(task_frame, orient="vertical", command=task_listbox.yview)
+            scrollbar.pack(side="right", fill="y")
+            task_listbox.config(yscrollcommand=scrollbar.set)
+
+            self.task_entries[day] = task_listbox
+
+        # Footer with action buttons
+        footer = tk.Frame(main_container, bg=self.colors['background'])
+        footer.pack(pady=20, fill="x")
+
+        btn_frame = tk.Frame(footer, bg=self.colors['background'])
+        btn_frame.pack()
+
+        buttons = [
+            ("Add Event (F1)", self.open_terminal),
+            ("View All (F2)", self.print_all_events)
+        ]
+
+        for text, command in buttons:
+            btn = tk.Button(
+                btn_frame,
+                text=text,
+                command=command,
+                font=("Helvetica", 10),
+                bg=self.colors['primary'],
+                fg="white",
+                padx=20,
+                pady=10,
+                bd=0,
+                cursor="hand2"
+            )
+            btn.pack(side="left", padx=10)
+            # Add hover effect
+            btn.bind("<Enter>", lambda e, b=btn: b.configure(bg="#1d4ed8"))
+            btn.bind("<Leave>", lambda e, b=btn: b.configure(bg=self.colors['primary']))
+
+    def open_terminal(self):
+        terminal = tk.Toplevel(self.root)
+        terminal.title("Add Event")
+        terminal.geometry("500x300")
+        terminal.configure(bg=self.colors['background'])
+
+        # Center the terminal window
+        terminal.geometry("+%d+%d" % (
+            self.root.winfo_x() + (self.root.winfo_width() - 500) // 2,
+            self.root.winfo_y() + (self.root.winfo_height() - 300) // 2
+        ))
+
+        header = tk.Label(
+            terminal,
+            text="Add New Event",
+            font=("Helvetica", 16, "bold"),
+            bg=self.colors['background'],
+            fg=self.colors['primary']
+        )
+        header.pack(pady=20)
+
+        # Form container
+        form_frame = tk.Frame(terminal, bg=self.colors['background'])
+        form_frame.pack(fill="both", expand=True, padx=40)
+
+        # Command entry with modern styling
+        entry_frame = tk.Frame(form_frame, bg=self.colors['background'])
+        entry_frame.pack(fill="x", pady=10)
+
+        command_entry = tk.Entry(
+            entry_frame,
+            font=("Helvetica", 12),
+            bg=self.colors['surface'],
+            fg=self.colors['text'],
+            insertbackground=self.colors['primary'],
+            relief="flat",
+            width=40
+        )
+        command_entry.pack(fill="x", ipady=8)
+
+        # Add subtle border
+        entry_border = tk.Frame(entry_frame, height=2, bg=self.colors['border'])
+        entry_border.pack(fill="x")
+
+        def on_enter(event=None):
+            command = command_entry.get()
+            self.process_command(command)
+            command_entry.delete(0, tk.END)
+
+        command_entry.bind("<Return>", on_enter)
+
+        # Help text
+        help_frame = tk.Frame(form_frame, bg=self.colors['background'])
+        help_frame.pack(fill="x", pady=20)
+
+        help_title = tk.Label(
+            help_frame,
+            text="Command Format:",
+            font=("Helvetica", 11, "bold"),
+            bg=self.colors['background'],
+            fg=self.colors['secondary']
+        )
+        help_title.pack(anchor="w")
+
+        examples = [
+            "add <event> <day> <hour>",
+            "delete <event> <day> <hour>",
+            "Example: add Meeting Monday 14:00"
+        ]
+
+        for example in examples:
+            tk.Label(
+                help_frame,
+                text=example,
+                font=("Helvetica", 10),
+                bg=self.colors['background'],
+                fg=self.colors['secondary']
+            ).pack(anchor="w", pady=2)
+
+    def process_command(self, command):
+        parts = command.split()
+        if len(parts) < 4:
+            messagebox.showerror("Error", "Invalid command format.")
+            return
+        action, event, day, hour = parts[0], parts[1], parts[2].capitalize(), parts[3]
         if action == "add":
-            add_task(event, day, hour)
+            self.add_task(event, day, hour)
         elif action == "delete":
-            delete_task(event, day, hour)
+            self.delete_task(event, day, hour)
         else:
-            messagebox.showerror("Error", "Invalid command. Use 'add' or 'delete'.")
-    else:
-        messagebox.showerror("Error", "Invalid command format. Use: add <event> <day> <hour> or delete <event> <day> <hour>")
+            messagebox.showerror("Error", "Invalid action. Use 'add' or 'delete'.")
 
-# Function to open terminal
-def open_terminal():
-    terminal = tk.Toplevel(root)
-    terminal.title("Terminal")
-    terminal.geometry("400x200")
+    def add_task(self, event, day, hour):
+        if day not in self.days:
+            messagebox.showerror("Error", f"Invalid day: {day}")
+            return
+        task = f"{hour}: {event}"
+        self.tasks[day].append(task)
+        self.task_entries[day].insert(tk.END, task)
+        # Sort tasks by time
+        self.sort_tasks(day)
 
-    command_label = tk.Label(terminal, text="Enter Command:")
-    command_label.pack(pady=5)
+    def sort_tasks(self, day):
+        tasks = list(self.task_entries[day].get(0, tk.END))
+        tasks.sort(key=lambda x: x.split(":")[0])  # Sort by hour
+        self.task_entries[day].delete(0, tk.END)
+        for task in tasks:
+            self.task_entries[day].insert(tk.END, task)
 
-    command_entry = tk.Entry(terminal, width=50)
-    command_entry.pack(pady=5)
-    
-    def on_enter(event=None):
-        command = command_entry.get()
-        process_command(command)
-        command_entry.delete(0, tk.END)
+    def delete_task(self, event, day, hour):
+        if day not in self.days:
+            messagebox.showerror("Error", f"Invalid day: {day}")
+            return
+        task = f"{hour}: {event}"
+        if task in self.tasks[day]:
+            self.tasks[day].remove(task)
+            index = self.task_entries[day].get(0, tk.END).index(task)
+            self.task_entries[day].delete(index)
+        else:
+            messagebox.showinfo("Info", f"Task '{task}' not found for {day}.")
 
-    # Bind enter key in terminal to process command
-    command_entry.bind("<Return>", on_enter)
+    def print_all_events(self):
+        events_window = tk.Toplevel(self.root)
+        events_window.title("All Events")
+        events_window.geometry("600x400")
+        events_window.configure(bg=self.colors['background'])
 
-    # Add instructions for the user
-    instructions = tk.Label(
-        terminal,
-        text="Format: add <event> <day> <hour> or delete <event> <day> <hour>\nExample: delete Meeting Monday 10:00",
-        fg="gray"
-    )
-    instructions.pack(pady=5)
+        # Center the window
+        events_window.geometry("+%d+%d" % (
+            self.root.winfo_x() + (self.root.winfo_width() - 600) // 2,
+            self.root.winfo_y() + (self.root.winfo_height() - 400) // 2
+        ))
 
-# Function to print all events
-def print_all_events():
-    all_events = []
-    for day, day_tasks in tasks.items():
-        if day_tasks:
-            for task in day_tasks:
-                all_events.append(f"{day}: {task}")
-    events_text = "\n".join(all_events) if all_events else "No events scheduled."
+        header = tk.Label(
+            events_window,
+            text="All Scheduled Events",
+            font=("Helvetica", 16, "bold"),
+            bg=self.colors['background'],
+            fg=self.colors['primary']
+        )
+        header.pack(pady=20)
 
-    # Create a new window to display the events
-    events_window = tk.Toplevel(root)
-    events_window.title("All Events")
-    events_window.geometry("400x300")
+        # Create text widget with custom styling
+        events_text = tk.Text(
+            events_window,
+            wrap="word",
+            height=15,
+            width=50,
+            font=("Helvetica", 11),
+            bg=self.colors['surface'],
+            fg=self.colors['text'],
+            relief="flat",
+            padx=15,
+            pady=15
+        )
+        events_text.pack(padx=20, pady=(0, 20), fill="both", expand=True)
 
-    events_label = tk.Text(events_window, wrap="word", height=15, width=40)
-    events_label.insert("1.0", events_text)
-    events_label.config(state="disabled")
-    events_label.pack(pady=10)
+        # Populate events
+        all_events = []
+        for day in self.days:
+            if self.tasks[day]:
+                all_events.append(f"\n{day}:")
+                for task in sorted(self.tasks[day]):
+                    all_events.append(f"  • {task}")
 
-    # Copy button to copy all events to the clipboard
-    def copy_to_clipboard():
-        root.clipboard_clear()
-        root.clipboard_append(events_text)
-        root.update()  # Ensure clipboard is updated
-        messagebox.showinfo("Copied", "All events copied to clipboard!")
+        events_text.insert("1.0", "No events scheduled." if not all_events else "\n".join(all_events))
+        events_text.config(state="disabled")
 
-    copy_button = tk.Button(events_window, text="Copy to Clipboard", command=copy_to_clipboard)
-    copy_button.pack(pady=5)
+        # Copy button with hover effect
+        copy_btn = tk.Button(
+            events_window,
+            text="Copy to Clipboard",
+            font=("Helvetica", 10),
+            bg=self.colors['primary'],
+            fg="white",
+            padx=20,
+            pady=10,
+            bd=0,
+            cursor="hand2",
+            command=lambda: self.copy_events(events_text.get("1.0", tk.END))
+        )
+        copy_btn.pack(pady=20)
 
+        copy_btn.bind("<Enter>", lambda e: copy_btn.configure(bg="#1d4ed8"))
+        copy_btn.bind("<Leave>", lambda e: copy_btn.configure(bg=self.colors['primary']))
 
-# Bind F1 key to open the terminal
-root.bind("<F1>", lambda event: open_terminal())
+    def copy_events(self, events_text):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(events_text)
+        self.root.update()
+        messagebox.showinfo("Success", "Events copied to clipboard!")
 
-# Bind F2 key to print all events
-root.bind("<F2>", lambda event: print_all_events())
+    def bind_shortcuts(self):
+        self.root.bind("<F1>", lambda event: self.open_terminal())
+        self.root.bind("<F2>", lambda event: self.print_all_events())
 
-# Run the application
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ModernAppDesign(root)
+    root.mainloop()
