@@ -108,8 +108,23 @@ def open_terminal():
     )
     instructions.pack(pady=5)
 
+# Function to print all events
+def print_all_events():
+    all_events = []
+    for day, day_tasks in tasks.items():
+        if day_tasks:
+            for task in day_tasks:
+                all_events.append(f"{day}: {task}")
+    if all_events:
+        messagebox.showinfo("All Events", "\n".join(all_events))
+    else:
+        messagebox.showinfo("All Events", "No events scheduled.")
+
 # Bind F1 key to open the terminal
 root.bind("<F1>", lambda event: open_terminal())
+
+# Bind F2 key to print all events
+root.bind("<F2>", lambda event: print_all_events())
 
 # Run the application
 root.mainloop()
