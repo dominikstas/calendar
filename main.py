@@ -115,10 +115,28 @@ def print_all_events():
         if day_tasks:
             for task in day_tasks:
                 all_events.append(f"{day}: {task}")
-    if all_events:
-        messagebox.showinfo("All Events", "\n".join(all_events))
-    else:
-        messagebox.showinfo("All Events", "No events scheduled.")
+    events_text = "\n".join(all_events) if all_events else "No events scheduled."
+
+    # Create a new window to display the events
+    events_window = tk.Toplevel(root)
+    events_window.title("All Events")
+    events_window.geometry("400x300")
+
+    events_label = tk.Text(events_window, wrap="word", height=15, width=40)
+    events_label.insert("1.0", events_text)
+    events_label.config(state="disabled")
+    events_label.pack(pady=10)
+
+    # Copy button to copy all events to the clipboard
+    def copy_to_clipboard():
+        root.clipboard_clear()
+        root.clipboard_append(events_text)
+        root.update()  # Ensure clipboard is updated
+        messagebox.showinfo("Copied", "All events copied to clipboard!")
+
+    copy_button = tk.Button(events_window, text="Copy to Clipboard", command=copy_to_clipboard)
+    copy_button.pack(pady=5)
+
 
 # Bind F1 key to open the terminal
 root.bind("<F1>", lambda event: open_terminal())
