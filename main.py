@@ -288,30 +288,27 @@ class ModernAppDesign:
         events_window.title("All Events")
         events_window.geometry("600x400")
         events_window.configure(bg=self.colors['background'])
-        events_window.minsize(400, 300)  # Set minimum window size
+        events_window.minsize(600, 400)  # Force minimum size
 
-        # Center the window
-        events_window.geometry("+%d+%d" % (
-            self.root.winfo_x() + (self.root.winfo_width() - 600) // 2,
-            self.root.winfo_y() + (self.root.winfo_height() - 400) // 2
-        ))
+        # Create container frame with grid layout
+        container = tk.Frame(events_window, bg=self.colors['background'])
+        container.pack(fill="both", expand=True, padx=20, pady=20)
+        container.grid_rowconfigure(1, weight=1)  # Make text area expandable
+        container.grid_columnconfigure(0, weight=1)
 
-        # Main container with proper layout
-        main_frame = tk.Frame(events_window, bg=self.colors['background'])
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
-
+        # Header - row 0
         header = tk.Label(
-            main_frame,
+            container,
             text="All Scheduled Events",
             font=("Helvetica", 16, "bold"),
             bg=self.colors['background'],
             fg=self.colors['primary']
         )
-        header.pack(pady=(0, 20))
+        header.grid(row=0, column=0, pady=(0, 20), sticky="ew")
 
-        # Create text widget with custom styling
+        # Text widget - row 1
         events_text = tk.Text(
-            main_frame,
+            container,
             wrap="word",
             font=("Helvetica", 11),
             bg=self.colors['surface'],
@@ -320,13 +317,14 @@ class ModernAppDesign:
             padx=15,
             pady=15
         )
-        events_text.pack(fill="both", expand=True)
+        events_text.grid(row=1, column=0, sticky="nsew")
 
-        # Bottom frame for button
-        button_frame = tk.Frame(main_frame, bg=self.colors['background'])
-        button_frame.pack(fill="x", pady=(20, 0))
+        # Button frame - row 2
+        button_frame = tk.Frame(container, bg=self.colors['background'])
+        button_frame.grid(row=2, column=0, pady=(20, 0), sticky="ew")
+        button_frame.grid_columnconfigure(0, weight=1)  # Center the button
 
-        # Copy button with hover effect
+        # Copy button
         copy_btn = tk.Button(
             button_frame,
             text="Copy to Clipboard",
@@ -339,7 +337,7 @@ class ModernAppDesign:
             cursor="hand2",
             command=lambda: self.copy_events(events_text.get("1.0", tk.END))
         )
-        copy_btn.pack()
+        copy_btn.grid(row=0, column=0)
 
         copy_btn.bind("<Enter>", lambda e: copy_btn.configure(bg=self.colors['success']))
         copy_btn.bind("<Leave>", lambda e: copy_btn.configure(bg=self.colors['primary']))
@@ -354,7 +352,7 @@ class ModernAppDesign:
 
         events_text.insert("1.0", "No events scheduled." if not all_events else "\n".join(all_events))
         events_text.config(state="disabled")
-
+        
     def copy_events(self, events_text):
         self.root.clipboard_clear()
         self.root.clipboard_append(events_text)
