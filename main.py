@@ -9,15 +9,15 @@ class ModernAppDesign:
         self.root.geometry("1024x768")
         self.root.config(bg="#ffffff")
 
-        # Custom colors
+        # Custom colors - changed to violet/purple theme
         self.colors = {
-            'primary': '#2563eb',      # Blue
-            'secondary': '#6b7280',    # Gray
-            'success': '#059669',      # Green
+            'primary': '#7c3aed',      # Violet-600
+            'secondary': '#a78bfa',    # Violet-400
+            'success': '#6d28d9',      # Violet-700
             'background': '#ffffff',   # White
-            'surface': '#f3f4f6',     # Light gray
-            'text': '#1f2937',        # Dark gray
-            'border': '#e5e7eb'       # Light border
+            'surface': '#f5f3ff',     # Violet-50
+            'text': '#4c1d95',        # Violet-900
+            'border': '#ddd6fe'       # Violet-200
         }
 
         # Task storage
@@ -159,7 +159,7 @@ class ModernAppDesign:
             )
             btn.pack(side="left", padx=10)
             # Add hover effect
-            btn.bind("<Enter>", lambda e, b=btn: b.configure(bg="#1d4ed8"))
+            btn.bind("<Enter>", lambda e, b=btn: b.configure(bg=self.colors['success']))
             btn.bind("<Leave>", lambda e, b=btn: b.configure(bg=self.colors['primary']))
 
     def open_terminal(self):
@@ -288,6 +288,7 @@ class ModernAppDesign:
         events_window.title("All Events")
         events_window.geometry("600x400")
         events_window.configure(bg=self.colors['background'])
+        events_window.minsize(400, 300)  # Set minimum window size
 
         # Center the window
         events_window.geometry("+%d+%d" % (
@@ -295,21 +296,23 @@ class ModernAppDesign:
             self.root.winfo_y() + (self.root.winfo_height() - 400) // 2
         ))
 
+        # Main container with proper layout
+        main_frame = tk.Frame(events_window, bg=self.colors['background'])
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
         header = tk.Label(
-            events_window,
+            main_frame,
             text="All Scheduled Events",
             font=("Helvetica", 16, "bold"),
             bg=self.colors['background'],
             fg=self.colors['primary']
         )
-        header.pack(pady=20)
+        header.pack(pady=(0, 20))
 
         # Create text widget with custom styling
         events_text = tk.Text(
-            events_window,
+            main_frame,
             wrap="word",
-            height=15,
-            width=50,
             font=("Helvetica", 11),
             bg=self.colors['surface'],
             fg=self.colors['text'],
@@ -317,7 +320,29 @@ class ModernAppDesign:
             padx=15,
             pady=15
         )
-        events_text.pack(padx=20, pady=(0, 20), fill="both", expand=True)
+        events_text.pack(fill="both", expand=True)
+
+        # Bottom frame for button
+        button_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        button_frame.pack(fill="x", pady=(20, 0))
+
+        # Copy button with hover effect
+        copy_btn = tk.Button(
+            button_frame,
+            text="Copy to Clipboard",
+            font=("Helvetica", 10),
+            bg=self.colors['primary'],
+            fg="white",
+            padx=20,
+            pady=10,
+            bd=0,
+            cursor="hand2",
+            command=lambda: self.copy_events(events_text.get("1.0", tk.END))
+        )
+        copy_btn.pack()
+
+        copy_btn.bind("<Enter>", lambda e: copy_btn.configure(bg=self.colors['success']))
+        copy_btn.bind("<Leave>", lambda e: copy_btn.configure(bg=self.colors['primary']))
 
         # Populate events
         all_events = []
@@ -329,24 +354,6 @@ class ModernAppDesign:
 
         events_text.insert("1.0", "No events scheduled." if not all_events else "\n".join(all_events))
         events_text.config(state="disabled")
-
-        # Copy button with hover effect
-        copy_btn = tk.Button(
-            events_window,
-            text="Copy to Clipboard",
-            font=("Helvetica", 10),
-            bg=self.colors['primary'],
-            fg="white",
-            padx=20,
-            pady=10,
-            bd=0,
-            cursor="hand2",
-            command=lambda: self.copy_events(events_text.get("1.0", tk.END))
-        )
-        copy_btn.pack(pady=20)
-
-        copy_btn.bind("<Enter>", lambda e: copy_btn.configure(bg="#1d4ed8"))
-        copy_btn.bind("<Leave>", lambda e: copy_btn.configure(bg=self.colors['primary']))
 
     def copy_events(self, events_text):
         self.root.clipboard_clear()
