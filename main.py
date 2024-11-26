@@ -140,7 +140,7 @@ class ModernAppDesign:
         btn_frame.pack()
 
         buttons = [
-            ("Add Event (F1)", self.open_terminal),
+            ("Open Terminal (F1)", self.open_terminal),
             ("View All (F2)", self.print_all_events)
         ]
 
@@ -241,18 +241,40 @@ class ModernAppDesign:
                 fg=self.colors['secondary']
             ).pack(anchor="w", pady=2)
 
-    def process_command(self, command):
-        parts = command.split()
-        if len(parts) < 4:
-            messagebox.showerror("Error", "Invalid command format.")
+def process_command(self, command):
+    parts = command.split()
+    if len(parts) < 4:
+        messagebox.showerror("Error", "Invalid command format.")
+        return
+
+    action = parts[0]
+    if action == "add":
+        if len(parts) != 4:
+            messagebox.showerror("Error", "Invalid format for 'add'.")
             return
-        action, event, day, hour = parts[0], parts[1], parts[2].capitalize(), parts[3]
-        if action == "add":
-            self.add_task(event, day, hour)
-        elif action == "delete":
-            self.delete_task(event, day, hour)
+        event, day, hour = parts[1], parts[2].capitalize(), parts[3]
+        self.add_task(event, day, hour)
+    elif action == "delete":
+        if len(parts) != 4:
+            messagebox.showerror("Error", "Invalid format for 'delete'.")
+            return
+        event, day, hour = parts[1], parts[2].capitalize(), parts[3]
+        self.delete_task(event, day, hour)
+    elif action == "edit":
+        if len(parts) < 5:
+            messagebox.showerror("Error", "Invalid format for 'edit'.")
+            return
+        sub_action = parts[1]
+        if sub_action == "hour":
+            old_name, new_hour = parts[2], parts[3]
+            self.edit_task_hour(old_name, new_hour)
+        elif sub_action == "name":
+            old_name, new_name = parts[2], parts[3]
+            self.edit_task_name(old_name, new_name)
         else:
-            messagebox.showerror("Error", "Invalid action. Use 'add' or 'delete'.")
+            messagebox.showerror("Error", "Invalid sub-action for 'edit'. Use 'hour' or 'name'.")
+    else:
+        messagebox.showerror("Error", "Invalid action. Use 'add', 'delete', or 'edit'.")
 
     def add_task(self, event, day, hour):
         if day not in self.days:
@@ -362,6 +384,33 @@ class ModernAppDesign:
     def bind_shortcuts(self):
         self.root.bind("<F1>", lambda event: self.open_terminal())
         self.root.bind("<F2>", lambda event: self.print_all_events())
+
+def edit_task_hour(self, task_name, new_hour):
+    for day in self.days:
+        for task in self.tasks[day]:
+            if task.split(": ", 1)[1] == task_name:
+                old_task = task
+                new_task = f"{new_hour}: {task_name}"
+                self.tasks[day].remove(old_task)
+                self.tasks[day].append(new_task)
+                self.sort_tasks(day)
+                messagebox.showinfo("Success", f"Updated hour for '{task_name}' to {new_hour}.")
+                return
+    messagebox.showerror("Error", f"Task '{task_name}' not found.")
+
+def edit_task_name(self, old_name, new_name):
+    for day in self.days:
+        for task in self.tasks[day]:
+            if task.split(": ", 1)[1] == old_name:
+                hour = task.split(": ")[0]
+                old_task = task
+                new_task = f"{hour}: {new_name}"
+                self.tasks[day].remove(old_task)
+                self.tasks[day].append(new_task)
+                self.sort_tasks(day)
+                messagebox.showinfo("Success", f"Updated task name from '{old_name}' to '{new_name}'.")
+                return
+    messagebox.showerror("Error", f"Task '{old_name}' not found.")
 
 if __name__ == "__main__":
     root = tk.Tk()
