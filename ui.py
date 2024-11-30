@@ -1,7 +1,7 @@
-# ui.py
 from tkinter import ttk, messagebox
 from functions import TaskManager
 import tkinter as tk
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 
 class ModernAppDesign(TaskManager):
@@ -25,6 +25,10 @@ class ModernAppDesign(TaskManager):
         self.configure_styles()
         self.create_ui()
         self.bind_shortcuts()
+
+        # Load Hugging Face GPT-2 Model
+        self.model = GPT2LMHeadModel.from_pretrained("gpt2")
+        self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
     def configure_styles(self):
         style = ttk.Style()
@@ -117,7 +121,7 @@ class ModernAppDesign(TaskManager):
             scrollbar.pack(side="right", fill="y")
             task_listbox.config(yscrollcommand=scrollbar.set)
 
-            self.task_entries[day] = task_listbox
+            self.task_entries[self.days[i]] = task_listbox
 
         footer = tk.Frame(main_container, bg=self.colors['background'])
         footer.pack(pady=20, fill="x")
@@ -127,7 +131,8 @@ class ModernAppDesign(TaskManager):
 
         buttons = [
             ("Open Terminal (F1)", self.open_terminal),
-            ("View All (F2)", self.print_all_events)
+            ("View All (F2)", self.print_all_events),
+            ("Generate Schedule (F3)", self.open_schedule_terminal)  # Added button for schedule generation
         ]
 
         for text, command in buttons:
@@ -147,6 +152,31 @@ class ModernAppDesign(TaskManager):
             btn.bind("<Enter>", lambda e, b=btn: b.configure(bg=self.colors['success']))
             btn.bind("<Leave>", lambda e, b=btn: b.configure(bg=self.colors['primary']))
 
+    def open_schedule_terminal(self):
+        schedule_terminal = tk.Toplevel()
+        schedule_terminal.title("Generate Schedule")
+        schedule_terminal.geometry("400x300")
+
+        tk.Label(schedule_terminal, text="Enter your goals/tasks for today:").pack(pady=5)
+        task_entry = tk.Entry(schedule_terminal)
+        task_entry.pack(pady=5)
+
+        def generate_schedule():
+            user_input = task_entry.get()
+            if not user_input:
+                messagebox.showerror("Error", "Please enter your tasks!")
+                return
+
+            # Generate schedule using Hugging Face model
+            inputs = self.tokenizer.encode(user_input, return_tensors="pt")
+            outputs = self.model.generate(inputs, max_length=150, num_return_sequences=1, no_repeat_ngram_size=2)
+
+            schedule = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            messagebox.showinfo("Generated Schedule", schedule)
+
+        tk.Button(schedule_terminal, text="Generate", command=generate_schedule).pack(pady=20)
+
     def bind_shortcuts(self):
         self.root.bind("<F1>", lambda event: self.open_terminal())
         self.root.bind("<F2>", lambda event: self.print_all_events())
+        self.root.bind("<F3>", lambda event: self.open_schedule_terminal())  # Bind the shortcut for schedule generation
