@@ -11,17 +11,34 @@ class TaskManager:
     def open_terminal(self):
         terminal = tk.Toplevel()
         terminal.title("Add Event")
-        terminal.geometry("500x300")
+        terminal.geometry("400x300")
 
-    def process_command(self, command):
-        parts = command.split()
-        if len(parts) < 4:
-            messagebox.showerror("Error", "Invalid command format.")
-            return
-        action = parts[0]
-        if action == "add":
-            event, day, hour = parts[1], parts[2].capitalize(), parts[3]
-            self.add_task(event, day, hour)
+        # Create input fields for Event Name, Day, and Time
+        tk.Label(terminal, text="Event Name").pack(pady=5)
+        event_name_entry = tk.Entry(terminal)
+        event_name_entry.pack(pady=5)
+
+        tk.Label(terminal, text="Day").pack(pady=5)
+        day_entry = tk.Entry(terminal)
+        day_entry.pack(pady=5)
+
+        tk.Label(terminal, text="Time").pack(pady=5)
+        time_entry = tk.Entry(terminal)
+        time_entry.pack(pady=5)
+
+        def submit_event():
+            event_name = event_name_entry.get()
+            day = day_entry.get().capitalize()
+            time = time_entry.get()
+
+            if not event_name or not day or not time:
+                messagebox.showerror("Error", "All fields must be filled.")
+                return
+
+            self.add_task(event_name, day, time)
+            terminal.destroy()
+
+        tk.Button(terminal, text="Submit", command=submit_event).pack(pady=20)
 
     def add_task(self, event, day, hour):
         if day not in self.days:
@@ -40,4 +57,11 @@ class TaskManager:
             self.task_entries[day].insert(tk.END, task)
 
     def print_all_events(self):
-        pass
+        all_events = tk.Toplevel()
+        all_events.title("All Scheduled Events")
+        all_events.geometry("500x400")
+
+        for day, tasks in self.tasks.items():
+            tk.Label(all_events, text=day, font=("Helvetica", 12, "bold")).pack(anchor="w", pady=5)
+            for task in tasks:
+                tk.Label(all_events, text=f"  - {task}", font=("Helvetica", 10)).pack(anchor="w")

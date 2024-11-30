@@ -1,7 +1,8 @@
 # ui.py
-import tkinter as tk
 from tkinter import ttk, messagebox
 from functions import TaskManager
+import tkinter as tk
+
 
 class ModernAppDesign(TaskManager):
     def __init__(self, root):
